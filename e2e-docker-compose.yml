@@ -1,0 +1,10 @@
+version: '3'
+services:
+  redis:
+    image: redis
+  proxy:
+    build:
+      context: .
+      dockerfile: e2e.Dockerfile
+    depends_on:
+      - redis
