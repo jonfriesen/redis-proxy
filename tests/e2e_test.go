@@ -11,11 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jonfriesen/redis-proxy/storage/redis"
-
 	"github.com/jonfriesen/redis-proxy/api"
 	"github.com/jonfriesen/redis-proxy/cache"
-	"github.com/jonfriesen/redis-proxy/storage/inmem"
+	"github.com/jonfriesen/redis-proxy/storage/redis"
 )
 
 func Test_SimpleGet(t *testing.T) {
@@ -26,7 +24,13 @@ func Test_SimpleGet(t *testing.T) {
 		"princess": "leia",
 	}
 
-	dataSource := NewStorageMiddleware(inmem.New(hm))
+	r, err := redis.New("redis", "6379")
+	if err != nil {
+		log.Fatalf("Error creating Redis connection: %+v", err)
+	}
+	seedDatasource(hm, r)
+
+	dataSource := NewStorageMiddleware(r)
 
 	handler := api.New(dataSource.asStorage(), cache)
 
@@ -102,7 +106,13 @@ func Test_LRUEviction(t *testing.T) {
 		"malcolm":  "reynolds",
 	}
 
-	dataSource := NewStorageMiddleware(inmem.New(hm))
+	r, err := redis.New("redis", "6379")
+	if err != nil {
+		log.Fatalf("Error creating Redis connection: %+v", err)
+	}
+	seedDatasource(hm, r)
+
+	dataSource := NewStorageMiddleware(r)
 
 	handler := api.New(dataSource.asStorage(), cache)
 
@@ -110,7 +120,7 @@ func Test_LRUEviction(t *testing.T) {
 	defer s.Close()
 
 	// first call populates our cache (size of 2)
-	_, err := http.Get(fmt.Sprintf("%s/v1/get/princess", s.URL))
+	_, err = http.Get(fmt.Sprintf("%s/v1/get/princess", s.URL))
 	if err != nil {
 		t.Fatal(err)
 	}

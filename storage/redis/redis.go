@@ -2,7 +2,6 @@ package redis
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/jonfriesen/redis-proxy/storage"
 	"github.com/mediocregopher/radix.v2/pool"
@@ -15,7 +14,6 @@ type redisPool struct {
 func New(host, port string) (*storage.Storage, error) {
 	db, err := pool.New("tcp", fmt.Sprintf("%v:%v", host, port), 10)
 	if err != nil {
-		log.Fatalf("Failed to create Redis pool: %v", err)
 		return nil, err
 	}
 

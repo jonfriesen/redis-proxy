@@ -3,8 +3,11 @@
 ## Overview
 This is a simple HTTP Redis proxy to remove pressure from the central Redis cache. The proxy handles time based key expiry and least recently used (LRU) eviction to only keep the most current key-value pairs available.
 
-## Requirements
+## Assumptions
+- API endpoint/path formatting was not specified, assuming any custom format is acceptable
+- There doesn't appear to be a HTTP proxy requirement for write operations, nor is it requested in the spec so a write endpoint is not included. This is justified as this project is designed to reduce pressure from lookups on the Redis instance
 
+## Requirements
 - Proxy to a single "backing" Redis server caching values on the proxy
 - Proxy needs to protect Redis from excessive calls
 - Cached records need to expire after a time duration
