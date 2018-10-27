@@ -25,6 +25,7 @@ redis-proxy
     |
     |-- api
     |-- cache
+    |   `-- lrucache
     |-- cmd
     |   `-- redis-proxy-http
     |-- scripts
@@ -36,13 +37,14 @@ redis-proxy
 
 In order:
 
-- api contains the HTTP endpoints, middleware, and composition of dependencies which are injected by main
-- cache is composed of our server cache which has values pushed into it from the api
-- cmd holds our different main classes, currently it's just `redis-proxy-http` but in the future could hold other projects, for example a gRPC implementation
-- storage contains our datasource interface and implementations
-    - inmem is an basic in memory implementation used during development
-    - redis is our production implementation of our data storage
-- tests holds end to end integration tests designed to be run using the `make test` command
+- api contains the HTTP endpoints, middleware, and composition of dependencies which are injected by main.
+- cache contains a logic layer that handles getting and automatically populating from the storage interface that is created on app startup.
+      - lrucache is cache implementation, it has two methods, Get and Push which are self-explanatory. To make the lrucache safe in concurrent situations it requires manually locking and unlocking.
+- cmd holds different main classes, currently it's just `redis-proxy-http` but in the future could hold other projects, for example a gRPC implementation.
+- storage contains our datasource interface and implementations.
+    - inmem is an basic in memory implementation used during development.
+    - redis is our production implementation of our data storage.
+- tests holds end to end integration tests designed to be run using the `make test` command.
 
 ### API
 The API is a REST HTTP with a single endpoint:
@@ -61,7 +63,7 @@ The cache holds the records in a doubly linked list alongside a hashmap for key 
 
 Expanded, the linked list is used to manage order of recently used records. Built as a queue, new and recently used records are pushed on the end. Older records make their way to the head where they will be the first ones to face eviction when the cache is full. Full is defined as the amount of keys, a configuration parameter, set at run time.
 
-The cache has two actions
+The lrucache has two actions
 
 #### Get
 Retrieving a record from the cache occurs in O(1) time. As we are using a map to associate our key to records which have a constant lookup time we do not have any iterations or searching for values.
@@ -128,7 +130,7 @@ The core requirements are fully met with this implementation. Time constraints p
 
 ## Roadmap
 ### Phase 2
-- Add more e2e tests
+- Add more e2e tests (better concurrency in particular)
 - Add unit tests
 - Revise docker files and build system to for simplicity and clarity
 - Enhance input validation
