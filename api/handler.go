@@ -40,6 +40,8 @@ func (h *handler) get(w io.Writer, r *http.Request) (interface{}, int, error) {
 		rKey := strings.TrimPrefix(r.URL.Path, "/v1/get/")
 		log.Printf("Looking up %v", rKey)
 
+		h.Cache.Lock()
+		defer h.Cache.Unlock()
 		v, err := h.Cache.Get(rKey)
 		if err == cache.ErrNotFound {
 			log.Printf("Lookup not in cache %v", rKey)
@@ -52,8 +54,11 @@ func (h *handler) get(w io.Writer, r *http.Request) (interface{}, int, error) {
 
 			if v != "" {
 				log.Println("Pushing key-value pair into cache")
-				h.Cache.Push(rKey, v)
+				err = h.Cache.Push(rKey, v)
 			}
+		}
+		if err == cache.ErrUnlocked {
+			log.Fatalf("Critical Error: %v", err)
 		}
 
 		return v, http.StatusOK, nil

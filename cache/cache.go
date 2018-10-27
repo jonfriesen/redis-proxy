@@ -6,7 +6,10 @@ import (
 	"time"
 )
 
-var ErrNotFound = errors.New("No Record Found")
+var (
+	ErrNotFound = errors.New("No Record Found")
+	ErrUnlocked = errors.New("Cache much be locked with Cache.Lock()")
+)
 
 type record struct {
 	key    string
@@ -27,6 +30,7 @@ type Cache struct {
 	maxKeys int32
 	maxAge  time.Duration
 	mtx     *sync.Mutex
+	locked  bool
 }
 
 func New(mkeys int32, mage time.Duration) *Cache {
@@ -37,12 +41,16 @@ func New(mkeys int32, mage time.Duration) *Cache {
 		mkeys,
 		mage,
 		&sync.Mutex{},
+		false,
 	}
 }
 
-func (c *Cache) Push(key, value string) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
+func (c *Cache) Push(key, value string) error {
+	// c.mtx.Lock()
+	// defer c.mtx.Unlock()
+	if !c.locked {
+		return ErrUnlocked
+	}
 
 	n := &node{
 		record: &record{
@@ -64,11 +72,14 @@ func (c *Cache) Push(key, value string) {
 			delete(c.table, d.record.key)
 		}
 	}
+
+	return nil
 }
 
 func (c *Cache) Get(key string) (string, error) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
+	if !c.locked {
+		return "", ErrUnlocked
+	}
 
 	n, exists := c.table[key]
 	if !exists {
@@ -83,6 +94,16 @@ func (c *Cache) Get(key string) (string, error) {
 	c.add(n)
 
 	return n.record.value, nil
+}
+
+func (c *Cache) Lock() {
+	c.mtx.Lock()
+	c.locked = true
+}
+
+func (c *Cache) Unlock() {
+	c.mtx.Unlock()
+	c.locked = false
 }
 
 // add will add a node to the list Cache
