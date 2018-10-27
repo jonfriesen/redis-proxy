@@ -90,6 +90,7 @@ func (c *Cache) Get(key string) (string, error) {
 		return "", ErrNotFound
 	}
 	if time.Now().After(n.record.expiry) {
+		c.evict(n)
 		return "", ErrNotFound
 	}
 
