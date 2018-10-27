@@ -46,10 +46,14 @@ func New(mkeys int32, mage time.Duration) *Cache {
 }
 
 func (c *Cache) Push(key, value string) error {
-	// c.mtx.Lock()
-	// defer c.mtx.Unlock()
 	if !c.locked {
 		return ErrUnlocked
+	}
+
+	// remove duplicates from linklist
+	oldNode, exists := c.table[key]
+	if exists {
+		c.evict(oldNode)
 	}
 
 	n := &node{
