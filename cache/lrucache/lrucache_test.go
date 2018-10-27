@@ -1,4 +1,4 @@
-package cache
+package lrucache
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestCache_add(t *testing.T) {
+func TestLRUCache_add(t *testing.T) {
 	type fields struct {
 		table   map[string]*node
 		head    *node
@@ -25,7 +25,7 @@ func TestCache_add(t *testing.T) {
 		args   args
 	}{
 		{
-			name: "add node to empty cache",
+			name: "add node to empty lrucache",
 			fields: fields{
 				table:   make(map[string]*node),
 				head:    nil,
@@ -47,7 +47,7 @@ func TestCache_add(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Cache{
+			c := &LRUCache{
 				table:   tt.fields.table,
 				head:    tt.fields.head,
 				tail:    tt.fields.tail,

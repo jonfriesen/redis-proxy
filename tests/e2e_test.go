@@ -17,8 +17,6 @@ import (
 )
 
 func Test_SimpleGet(t *testing.T) {
-	cache := cache.New(int32(2), time.Duration(60000))
-
 	hm := map[string]string{
 		"han":      "solo",
 		"princess": "leia",
@@ -32,7 +30,9 @@ func Test_SimpleGet(t *testing.T) {
 
 	dataSource := NewStorageMiddleware(r)
 
-	handler := api.New(dataSource.asStorage(), cache)
+	cache := cache.New(int32(2), time.Duration(60000), dataSource.asStorage())
+
+	handler := api.New(cache)
 
 	s := httptest.NewServer(handler)
 	defer s.Close()
@@ -60,8 +60,6 @@ func Test_SimpleGet(t *testing.T) {
 }
 
 func Test_TimeExpiry(t *testing.T) {
-	cache := cache.New(int32(2), time.Duration(1))
-
 	hm := map[string]string{
 		"han":      "solo",
 		"princess": "leia",
@@ -75,7 +73,9 @@ func Test_TimeExpiry(t *testing.T) {
 
 	dataSource := NewStorageMiddleware(r)
 
-	handler := api.New(dataSource.asStorage(), cache)
+	cache := cache.New(int32(2), time.Duration(1), dataSource.asStorage())
+
+	handler := api.New(cache)
 
 	s := httptest.NewServer(handler)
 	defer s.Close()
@@ -98,7 +98,6 @@ func Test_TimeExpiry(t *testing.T) {
 }
 
 func Test_LRUEviction(t *testing.T) {
-	cache := cache.New(int32(2), time.Duration(60000))
 
 	hm := map[string]string{
 		"han":      "solo",
@@ -114,7 +113,9 @@ func Test_LRUEviction(t *testing.T) {
 
 	dataSource := NewStorageMiddleware(r)
 
-	handler := api.New(dataSource.asStorage(), cache)
+	cache := cache.New(int32(2), time.Duration(60000), dataSource.asStorage())
+
+	handler := api.New(cache)
 
 	s := httptest.NewServer(handler)
 	defer s.Close()

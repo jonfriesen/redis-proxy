@@ -24,14 +24,14 @@ func main() {
 	redisPort := flag.String("redis-port", "6379", "Redis port")
 	flag.Parse()
 
-	cache := cache.New(int32(*cacheSize), time.Duration(*recordExpiry)*time.Millisecond)
-
 	dataSource, err := redis.New(*redisHost, *redisPort)
 	if err != nil {
 		log.Fatalf("Failed to created Redis connection with %+v", err)
 	}
 
-	handler := api.New(dataSource, cache)
+	cache := cache.New(int32(*cacheSize), time.Duration(*recordExpiry)*time.Millisecond, dataSource)
+
+	handler := api.New(cache)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf("%v:%v", *host, *port),
